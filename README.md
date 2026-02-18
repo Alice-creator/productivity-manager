@@ -36,22 +36,26 @@ See [docs/service-decision.md](docs/service-decision.md) for why these were chos
 
 ```bash
 git clone <repo-url>
-cd productivity-manager
+cd productivity-manager/app
 npm install
 ```
 
 ### 2. Set up environment variables
 
-Create a `.env` file at the root:
+Create a `.env` file inside `app/`:
 
 ```env
 VITE_SUPABASE_URL=your_supabase_project_url
-VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+VITE_SUPABASE_PUBLISHABLE_DEFAULT_KEY=your_supabase_publishable_key
 ```
 
 Get these from your Supabase project → **Settings → API**.
 
-### 3. Run locally
+### 3. Apply the database migration
+
+See [docs/applying-migrations.md](docs/applying-migrations.md) for instructions.
+
+### 4. Run locally
 
 ```bash
 npm run dev
@@ -62,7 +66,7 @@ npm run dev
 - [x] Project setup & planning
 - [x] Supabase schema (tasks, time logs, categories)
 - [x] Google authentication
-- [ ] Weekly planner view
-- [ ] Dashboard with charts
+- [x] Weekly planner view (7-day grid, 15-min slots, toggle done)
+- [x] Dashboard with charts (completion rate, trend, time distribution, streak, energy map)
 - [ ] Web push notifications
 - [ ] Deploy to Vercel
