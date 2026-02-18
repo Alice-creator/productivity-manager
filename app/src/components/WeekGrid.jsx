@@ -1,5 +1,5 @@
-const HOUR_START = 6
-const HOUR_END = 22
+const HOUR_START = 0
+const HOUR_END = 24
 const HOURS = Array.from({ length: HOUR_END - HOUR_START }, (_, i) => HOUR_START + i)
 const HOUR_HEIGHT = 64
 const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
