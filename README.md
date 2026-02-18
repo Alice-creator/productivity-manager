@@ -61,7 +61,7 @@ npm run dev
 
 - [x] Project setup & planning
 - [x] Supabase schema (tasks, time logs, categories)
-- [ ] Google authentication
+- [x] Google authentication
 - [ ] Weekly planner view
 - [ ] Dashboard with charts
 - [ ] Web push notifications
