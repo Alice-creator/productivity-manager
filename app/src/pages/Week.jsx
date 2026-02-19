@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react'
 import supabase from '../lib/supabase'
 import WeekGrid from '../components/WeekGrid'
-import TaskModal from '../components/TaskModal'
 
 function getMondayOfWeek(date) {
   const d = new Date(date)
@@ -26,22 +25,50 @@ function formatRange(days) {
   return `${start} – ${end}`
 }
 
-export default function Week() {
+export default function Week({ categories, onSlotClick, onTaskClick, taskVersion }) {
   const [weekStart, setWeekStart] = useState(getMondayOfWeek(new Date()))
   const [tasks, setTasks] = useState([])
-  const [modalSlot, setModalSlot] = useState(null)
+  const [taskCatMap, setTaskCatMap] = useState({})
 
   const days = getWeekDays(weekStart)
 
   useEffect(() => {
     fetchTasks()
-  }, [weekStart])
+  }, [weekStart, taskVersion])
+
+  async function handleTaskMove(taskId, newDate, newStartTime, newEndTime) {
+    // Optimistic update — move task instantly in UI
+    setTasks(prev => prev.map(t =>
+      t.id === taskId
+        ? { ...t, date: newDate, start_time: newStartTime, end_time: newEndTime }
+        : t
+    ))
+    // Persist to database in background
+    await supabase.from('tasks').update({ date: newDate, start_time: newStartTime, end_time: newEndTime }).eq('id', taskId)
+  }
 
   async function fetchTasks() {
     const from = days[0].toISOString().split('T')[0]
     const to = days[6].toISOString().split('T')[0]
     const { data } = await supabase.from('tasks').select('*').gte('date', from).lte('date', to)
-    if (data) setTasks(data)
+    if (data) {
+      setTasks(data)
+      // Fetch category mappings for these tasks
+      const ids = data.map(t => t.id)
+      if (ids.length > 0) {
+        const { data: tcData } = await supabase.from('task_categories').select('*').in('task_id', ids)
+        if (tcData) {
+          const map = {}
+          tcData.forEach(tc => {
+            if (!map[tc.task_id]) map[tc.task_id] = []
+            map[tc.task_id].push(tc.category_id)
+          })
+          setTaskCatMap(map)
+        }
+      } else {
+        setTaskCatMap({})
+      }
+    }
   }
 
   function prevWeek() {
@@ -56,19 +83,6 @@ export default function Week() {
     setWeekStart(d)
   }
 
-  async function handleSaveTask(task) {
-    const { data } = await supabase.from('tasks').insert(task).select().single()
-    if (data) {
-      setTasks(prev => [...prev, data])
-      setModalSlot(null)
-    }
-  }
-
-  async function handleToggleDone(task) {
-    const { data } = await supabase.from('tasks').update({ done: !task.done }).eq('id', task.id).select().single()
-    if (data) setTasks(prev => prev.map(t => t.id === data.id ? data : t))
-  }
-
   return (
     <div style={{ height: '100%', display: 'flex', flexDirection: 'column', fontFamily: 'system-ui, sans-serif' }}>
       {/* Header */}
@@ -81,10 +95,16 @@ export default function Week() {
 
       {/* Grid */}
       <div style={{ flex: 1, overflow: 'auto' }}>
-        <WeekGrid days={days} tasks={tasks} onSlotClick={(date, time) => setModalSlot({ date, time })} onToggleDone={handleToggleDone} />
+        <WeekGrid
+          days={days}
+          tasks={tasks}
+          categories={categories}
+          taskCatMap={taskCatMap}
+          onSlotClick={onSlotClick}
+          onTaskClick={(task) => onTaskClick(task, taskCatMap[task.id] || [])}
+          onTaskMove={handleTaskMove}
+        />
       </div>
-
-      {modalSlot && <TaskModal slot={modalSlot} onSave={handleSaveTask} onClose={() => setModalSlot(null)} />}
     </div>
   )
 }

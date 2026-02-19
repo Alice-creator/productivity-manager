@@ -16,7 +16,6 @@ Most productivity apps are too general. They try to do everything, so you spend 
   - Streak calendar (days you hit your goals)
   - Weekly trend (are you improving over 8 weeks?)
   - Energy map (which hours you're most productive)
-- **Web Push Notifications** — Browser-native reminders before tasks and end-of-day summaries.
 - **Google Sign-in** — One click to get in, no separate account to manage.
 
 ## Stack
@@ -68,5 +67,4 @@ npm run dev
 - [x] Google authentication
 - [x] Weekly planner view (7-day grid, 15-min slots, toggle done)
 - [x] Dashboard with charts (completion rate, trend, time distribution, streak, energy map)
-- [ ] Web push notifications
-- [ ] Deploy to Vercel
+- [x] Deploy to Vercel
