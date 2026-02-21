@@ -1,5 +1,6 @@
 import supabase from '../lib/supabase'
 import logo from '../assets/productivity-logo.png'
+import { T } from '../theme'
 
 export default function Login() {
   const handleGoogleLogin = async () => {
@@ -47,10 +48,10 @@ export default function Login() {
       </div>
 
       {/* Right — pitch */}
-      <div style={{ width: '45%', background: 'linear-gradient(45deg, rgba(0,0,0,1) 0%, rgba(126,136,140,1) 50%, rgba(211,234,242,1) 100%)', display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '64px 56px', color: 'white' }}>
+      <div style={{ width: '45%', background: T.bg, borderLeft: `1px solid ${T.border}`, display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '64px 56px', color: T.text }}>
         <h2 style={{ fontSize: 36, fontWeight: 700, lineHeight: 1.25, margin: '0 0 24px' }}>Plan your week.<br />Track your time.<br />See your progress.</h2>
 
-        <div style={{ borderLeft: '3px solid rgba(255,255,255,0.3)', paddingLeft: 20, marginBottom: 40 }}>
+        <div style={{ borderLeft: `2px solid ${T.border}`, paddingLeft: 20, marginBottom: 40 }}>
           <p style={{ fontSize: 15, opacity: 0.85, margin: '0 0 12px', lineHeight: 1.6 }}>
             "A focused tool for people who want results — without spending an hour learning the app."
           </p>

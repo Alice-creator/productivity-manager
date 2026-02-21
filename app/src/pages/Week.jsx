@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react'
 import supabase from '../lib/supabase'
 import WeekGrid from '../components/WeekGrid'
+import Drawer from '../components/Drawer'
+import { T } from '../theme'
 
 function getMondayOfWeek(date) {
   const d = new Date(date)
@@ -25,16 +27,33 @@ function formatRange(days) {
   return `${start} – ${end}`
 }
 
-export default function Week({ categories, onSlotClick, onTaskClick, taskVersion }) {
+export default function Week({ categories, onCategoriesChange }) {
   const [weekStart, setWeekStart] = useState(getMondayOfWeek(new Date()))
   const [tasks, setTasks] = useState([])
   const [taskCatMap, setTaskCatMap] = useState({})
+  const [taskVersion, setTaskVersion] = useState(0)
+  const [drawerSlot, setDrawerSlot] = useState(null)
+  const [editTask, setEditTask] = useState(null)
 
   const days = getWeekDays(weekStart)
 
   useEffect(() => {
     fetchTasks()
   }, [weekStart, taskVersion])
+
+  function handleSlotClick(date, time) {
+    setEditTask(null)
+    setDrawerSlot({ date, time, _ts: Date.now() })
+  }
+
+  function handleTaskClick(task, categoryIds) {
+    setDrawerSlot(null)
+    setEditTask({ ...task, category_ids: categoryIds, _ts: Date.now() })
+  }
+
+  function handleTaskChanged() {
+    setTaskVersion(v => v + 1)
+  }
 
   async function handleTaskMove(taskId, newDate, newStartTime, newEndTime) {
     // Optimistic update — move task instantly in UI
@@ -84,26 +103,36 @@ export default function Week({ categories, onSlotClick, onTaskClick, taskVersion
   }
 
   return (
-    <div style={{ height: '100%', display: 'flex', flexDirection: 'column', fontFamily: 'system-ui, sans-serif' }}>
-      {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 16px', borderBottom: '1px solid #e5e7eb', flexShrink: 0 }}>
-        <button onClick={prevWeek} style={navBtn}>←</button>
-        <button onClick={nextWeek} style={navBtn}>→</button>
-        <span style={{ fontWeight: 600, fontSize: 15 }}>{formatRange(days)}</span>
-        <button onClick={() => setWeekStart(getMondayOfWeek(new Date()))} style={{ ...navBtn, marginLeft: 4, fontSize: 13 }}>Today</button>
-      </div>
+    <div style={{ height: '100%', display: 'flex', fontFamily: 'system-ui, sans-serif', background: T.bg }}>
+      <Drawer
+        slot={drawerSlot}
+        editTask={editTask}
+        categories={categories}
+        onCategoriesChange={onCategoriesChange}
+        onTaskChanged={handleTaskChanged}
+      />
 
-      {/* Grid */}
-      <div style={{ flex: 1, overflow: 'auto' }}>
-        <WeekGrid
-          days={days}
-          tasks={tasks}
-          categories={categories}
-          taskCatMap={taskCatMap}
-          onSlotClick={onSlotClick}
-          onTaskClick={(task) => onTaskClick(task, taskCatMap[task.id] || [])}
-          onTaskMove={handleTaskMove}
-        />
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+        {/* Header */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 16px', borderBottom: `1px solid ${T.border}`, flexShrink: 0 }}>
+          <button onClick={prevWeek} style={navBtn}>←</button>
+          <button onClick={nextWeek} style={navBtn}>→</button>
+          <span style={{ fontWeight: 600, fontSize: 15, color: T.text }}>{formatRange(days)}</span>
+          <button onClick={() => setWeekStart(getMondayOfWeek(new Date()))} style={{ ...navBtn, marginLeft: 4, fontSize: 13 }}>Today</button>
+        </div>
+
+        {/* Grid */}
+        <div style={{ flex: 1, overflow: 'auto' }}>
+          <WeekGrid
+            days={days}
+            tasks={tasks}
+            categories={categories}
+            taskCatMap={taskCatMap}
+            onSlotClick={handleSlotClick}
+            onTaskClick={(task) => handleTaskClick(task, taskCatMap[task.id] || [])}
+            onTaskMove={handleTaskMove}
+          />
+        </div>
       </div>
     </div>
   )
@@ -111,9 +140,10 @@ export default function Week({ categories, onSlotClick, onTaskClick, taskVersion
 
 const navBtn = {
   padding: '4px 10px',
-  border: '1px solid #e5e7eb',
+  border: `1px solid ${T.borderStrong}`,
   borderRadius: 4,
-  background: 'white',
+  background: T.elevated,
+  color: T.text,
   cursor: 'pointer',
   fontSize: 14,
 }

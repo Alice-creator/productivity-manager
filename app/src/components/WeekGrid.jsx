@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react'
+import { T } from '../theme'
 
 const HOUR_START = 0
 const HOUR_END = 24
@@ -51,15 +52,15 @@ export default function WeekGrid({ days, tasks, categories = [], taskCatMap = {}
     if (catIds && catIds.length > 0 && catById[catIds[0]]) {
       const color = catById[catIds[0]].color
       return {
-        bg: task.done ? hexToRgba(color, 0.15) : hexToRgba(color, 0.2),
-        border: task.done ? hexToRgba(color, 0.3) : hexToRgba(color, 0.5),
-        text: task.done ? '#6b7280' : color,
+        bg: hexToRgba(color, 0.28),
+        border: hexToRgba(color, 0.9),
+        text: color,
       }
     }
     return {
-      bg: task.done ? '#d1fae5' : '#dbeafe',
-      border: task.done ? '#6ee7b7' : '#93c5fd',
-      text: task.done ? '#065f46' : '#1e40af',
+      bg: '#1a2540',
+      border: '#5580cc',
+      text: '#7aaeff',
     }
   }
 
@@ -273,9 +274,9 @@ export default function WeekGrid({ days, tasks, categories = [], taskCatMap = {}
   return (
     <div ref={gridRef} style={{ display: 'flex', width: '100%' }}>
       {/* Time labels */}
-      <div style={{ width: 56, flexShrink: 0, paddingTop: 41 }}>
+      <div style={{ width: 56, flexShrink: 0, paddingTop: 41, background: T.bg }}>
         {HOURS.map(h => (
-          <div key={h} style={{ height: HOUR_HEIGHT, display: 'flex', alignItems: 'flex-start', justifyContent: 'flex-end', paddingRight: 8, paddingTop: 4, fontSize: 11, color: '#9ca3af' }}>
+          <div key={h} style={{ height: HOUR_HEIGHT, display: 'flex', alignItems: 'flex-start', justifyContent: 'flex-end', paddingRight: 8, paddingTop: 4, fontSize: 12, color: T.textSub }}>
             {`${h.toString().padStart(2, '0')}:00`}
           </div>
         ))}
@@ -288,11 +289,11 @@ export default function WeekGrid({ days, tasks, categories = [], taskCatMap = {}
         const dateStr = date.toISOString().split('T')[0]
 
         return (
-          <div key={i} style={{ flex: 1, minWidth: 0, borderLeft: '1px solid #e5e7eb' }}>
+          <div key={i} style={{ flex: 1, minWidth: 0, borderLeft: `1px solid ${T.border}` }}>
             {/* Day header */}
-            <div style={{ height: 40, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', borderBottom: '1px solid #e5e7eb', background: isToday ? '#eff6ff' : 'white', position: 'sticky', top: 0, zIndex: 1 }}>
-              <span style={{ fontSize: 11, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{DAYS[i]}</span>
-              <span style={{ fontSize: 14, fontWeight: isToday ? 700 : 400, color: isToday ? '#2563eb' : '#111827' }}>{date.getDate()}</span>
+            <div style={{ height: 40, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', borderBottom: `1px solid ${T.border}`, background: isToday ? T.surface : T.bg, position: 'sticky', top: 0, zIndex: 1 }}>
+              <span style={{ fontSize: 12, color: T.textSub, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{DAYS[i]}</span>
+              <span style={{ fontSize: 15, fontWeight: isToday ? 700 : 400, color: isToday ? T.text : T.textSub }}>{date.getDate()}</span>
             </div>
 
             {/* Clickable time slots */}
@@ -304,7 +305,7 @@ export default function WeekGrid({ days, tasks, categories = [], taskCatMap = {}
             >
               {/* Hour lines */}
               {HOURS.map(h => (
-                <div key={h} style={{ position: 'absolute', top: (h - HOUR_START) * HOUR_HEIGHT, left: 0, right: 0, height: HOUR_HEIGHT, borderTop: '1px solid #f3f4f6' }} />
+                <div key={h} style={{ position: 'absolute', top: (h - HOUR_START) * HOUR_HEIGHT, left: 0, right: 0, height: HOUR_HEIGHT, borderTop: `1px solid ${T.border}` }} />
               ))}
 
               {/* Tasks */}
