@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { NavLink } from 'react-router-dom'
 import supabase from '../lib/supabase'
-import logo from '../assets/productivity-logo.png'
+import logo from '../assets/navilife-icon.png'
 import { T } from '../theme'
 
 export default function Nav({ user }) {
@@ -26,6 +26,7 @@ export default function Nav({ user }) {
       <img src={logo} alt="logo" style={{ width: 26, height: 26, borderRadius: 6, objectFit: 'cover', marginRight: 12, opacity: 0.9 }} />
       <NavLink to="/" end style={({ isActive }) => linkStyle(isActive)}>Dashboard</NavLink>
       <NavLink to="/schedule" style={({ isActive }) => linkStyle(isActive)}>Schedule</NavLink>
+      <NavLink to="/daily" style={({ isActive }) => linkStyle(isActive)}>Daily</NavLink>
 
       <div ref={menuRef} style={{ marginLeft: 'auto', position: 'relative' }}>
         <button
@@ -59,6 +60,9 @@ export default function Nav({ user }) {
               </MenuItem>
               <MenuItem onClick={() => setMenuOpen(false)}>
                 <NavLink to="/schedule" style={{ textDecoration: 'none', color: 'inherit', display: 'block', width: '100%' }}>Schedule</NavLink>
+              </MenuItem>
+              <MenuItem onClick={() => setMenuOpen(false)}>
+                <NavLink to="/daily" style={{ textDecoration: 'none', color: 'inherit', display: 'block', width: '100%' }}>Daily</NavLink>
               </MenuItem>
             </div>
 

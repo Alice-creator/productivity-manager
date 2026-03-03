@@ -111,7 +111,7 @@ function buildStreakData(tasks, numWeeks) {
   tasks.forEach(t => {
     if (!dateMap[t.date]) dateMap[t.date] = { done: 0, total: 0 }
     dateMap[t.date].total++
-    if (t.done) dateMap[t.date].done++
+    if (t.status === 'done') dateMap[t.date].done++
   })
   const rows = []
   const monday = getMondayOfWeek(new Date())
@@ -214,7 +214,7 @@ export default function Dashboard() {
         .gte('date', isoDate(sixMonthsAgo))
         .order('date', { ascending: true })
       if (data) setTasks(data)
-      const { data: pending } = await supabase.from('tasks').select('id, date, done').eq('done', false)
+      const { data: pending } = await supabase.from('tasks').select('id, date, status').neq('status', 'done')
       if (pending) setPendingTasks(pending)
       const allIds = [...new Set([...(data || []).map(t => t.id), ...(pending || []).map(t => t.id)])]
       if (allIds.length > 0) {
@@ -240,13 +240,13 @@ export default function Dashboard() {
     return DAYS.map((day, i) => {
       const d = new Date(monday); d.setDate(d.getDate() + i)
       const dayTasks = tasks.filter(t => t.date === isoDate(d))
-      const done = dayTasks.filter(t => t.done).length
+      const done = dayTasks.filter(t => t.status === 'done').length
       return { day, done, total: dayTasks.length }
     })
   }, [tasks])
 
   const totalTasks = tasks.length
-  const doneTasks = tasks.filter(t => t.done).length
+  const doneTasks = tasks.filter(t => t.status === 'done').length
   const overallRate = totalTasks > 0 ? Math.round((doneTasks / totalTasks) * 100) : 0
   const thisWeekTotal = thisWeekData.reduce((a, d) => a + d.total, 0)
   const thisWeekDone = thisWeekData.reduce((a, d) => a + d.done, 0)
@@ -377,7 +377,7 @@ function CompletionByDayChart({ tasks, n, unit }) {
         const dow = new Date(t.date + 'T00:00:00').getDay()
         return (dow === 0 ? 6 : dow - 1) === i
       })
-      const done = dayTasks.filter(t => t.done).length
+      const done = dayTasks.filter(t => t.status === 'done').length
       const total = dayTasks.length
       return { day, done, total, rate: total > 0 ? Math.round((done / total) * 100) : 0 }
     })
@@ -410,10 +410,10 @@ function TrendChart({ tasks, categories, taskCatMap, n, unit }) {
         let catTasks, catDone
         if (cat.id === '__all') {
           catTasks = wt
-          catDone = wt.filter(t => t.done)
+          catDone = wt.filter(t => t.status === 'done')
         } else {
           catTasks = wt.filter(t => taskCatMap[t.id]?.includes(cat.id))
-          catDone = catTasks.filter(t => t.done)
+          catDone = catTasks.filter(t => t.status === 'done')
         }
         row[cat.name] = catTasks.length > 0 ? Math.round((catDone.length / catTasks.length) * 100) : 0
       })
@@ -515,7 +515,7 @@ function CompletionTimelineChart({ tasks, n, unit }) {
   const data = useMemo(() => {
     return buildTimeBuckets(n, unit).map(({ label, match }) => {
       const wt = tasks.filter(t => match(t))
-      return { label, total: wt.length, done: wt.filter(t => t.done).length }
+      return { label, total: wt.length, done: wt.filter(t => t.status === 'done').length }
     })
   }, [tasks, n, unit])
   if (!data.some(d => d.total > 0)) return <Empty />
@@ -544,7 +544,7 @@ const AGING_BUCKETS = [
 
 function TaskAgingChart({ pendingTasks, categories, taskCatMap, n, unit }) {
   const { data, catKeys } = useMemo(() => {
-    const filtered = filterLastN(pendingTasks, n, unit).filter(t => !t.done && t.date)
+    const filtered = filterLastN(pendingTasks, n, unit).filter(t => t.status !== 'done' && t.date)
     const today = new Date(); today.setHours(0, 0, 0, 0)
     const cats = catsOrFallback(categories)
     const rows = AGING_BUCKETS.map(({ label, min, max }) => {

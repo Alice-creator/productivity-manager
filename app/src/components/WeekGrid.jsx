@@ -340,7 +340,8 @@ export default function WeekGrid({ days, tasks, categories = [], taskCatMap = {}
                       overflow: 'hidden',
                       cursor: isDragging ? 'grabbing' : 'grab',
                       color: colors.text,
-                      textDecoration: task.done ? 'line-through' : 'none',
+                      textDecoration: task.status === 'done' ? 'line-through' : 'none',
+                      fontStyle: task.status === 'in_progress' ? 'italic' : 'normal',
                       userSelect: 'none',
                       opacity: isDragging ? 0.3 : 1,
                     }}

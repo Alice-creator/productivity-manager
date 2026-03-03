@@ -28,13 +28,15 @@ export default function Drawer({ slot, editTask, categories, onCategoriesChange,
   const [startTime, setStartTime] = useState('09:00')
   const [endTime, setEndTime] = useState('09:30')
   const [selectedCats, setSelectedCats] = useState([])
-  const [done, setDone] = useState(false)
+  const [status, setStatus] = useState('todo')
+  const [note, setNote] = useState('')
 
   useEffect(() => {
     if (slot) {
       setActiveTab('task')
       setEditingId(null)
-      setDone(false)
+      setStatus('todo')
+      setNote('')
       setDate(slot.date)
       setStartTime(slot.time)
       setEndTime(addMinutes(slot.time, 30))
@@ -52,7 +54,8 @@ export default function Drawer({ slot, editTask, categories, onCategoriesChange,
       setStartTime(stripSeconds(editTask.start_time) || '09:00')
       setEndTime(stripSeconds(editTask.end_time) || '09:30')
       setSelectedCats(editTask.category_ids || [])
-      setDone(editTask.done || false)
+      setStatus(editTask.status || 'todo')
+      setNote(editTask.note || '')
     }
   }, [editTask])
 
@@ -64,6 +67,7 @@ export default function Drawer({ slot, editTask, categories, onCategoriesChange,
       if (tab === 'task') {
         setEditingId(null)
         setTitle('')
+        setNote('')
         setDate(new Date().toISOString().split('T')[0])
         setStartTime('09:00')
         setEndTime('09:30')
@@ -100,7 +104,7 @@ export default function Drawer({ slot, editTask, categories, onCategoriesChange,
     if (editingId) {
       const { data: task } = await supabase
         .from('tasks')
-        .update({ title: title.trim(), date, start_time: startTime, end_time: endTime })
+        .update({ title: title.trim(), date, start_time: startTime, end_time: endTime, note })
         .eq('id', editingId)
         .select()
         .single()
@@ -116,7 +120,7 @@ export default function Drawer({ slot, editTask, categories, onCategoriesChange,
       const { data: { user } } = await supabase.auth.getUser()
       const { data: task } = await supabase
         .from('tasks')
-        .insert({ title: title.trim(), date, start_time: startTime, end_time: endTime, done: false, user_id: user.id })
+        .insert({ title: title.trim(), date, start_time: startTime, end_time: endTime, status: 'todo', note, user_id: user.id })
         .select()
         .single()
 
@@ -127,6 +131,7 @@ export default function Drawer({ slot, editTask, categories, onCategoriesChange,
       if (task) {
         onTaskChanged()
         setTitle('')
+        setNote('')
         setSelectedCats([])
       }
     }
@@ -141,11 +146,13 @@ export default function Drawer({ slot, editTask, categories, onCategoriesChange,
     setSelectedCats([])
   }
 
-  async function handleToggleDone() {
+  async function handleSetStatus(newStatus) {
     if (!editingId) return
-    const newDone = !done
-    await supabase.from('tasks').update({ done: newDone }).eq('id', editingId)
-    setDone(newDone)
+    await Promise.all([
+      supabase.from('tasks').update({ status: newStatus }).eq('id', editingId),
+      supabase.from('status_logs').insert({ task_id: editingId, status: newStatus }),
+    ])
+    setStatus(newStatus)
     onTaskChanged()
   }
 
@@ -193,9 +200,11 @@ export default function Drawer({ slot, editTask, categories, onCategoriesChange,
           {activeTab === 'task' && (
             <TaskTab
               isEditing={isEditing}
-              isDone={done}
+              status={status}
               title={title}
               setTitle={setTitle}
+              note={note}
+              setNote={setNote}
               date={date}
               setDate={setDate}
               startTime={startTime}
@@ -207,7 +216,7 @@ export default function Drawer({ slot, editTask, categories, onCategoriesChange,
               toggleCat={toggleCat}
               onSave={handleSaveTask}
               onDelete={handleDeleteTask}
-              onToggleDone={handleToggleDone}
+              onSetStatus={handleSetStatus}
             />
           )}
         </div>
@@ -259,20 +268,49 @@ function CategoriesTab({ categories, catName, setCatName, catColor, setCatColor,
   )
 }
 
-function TaskTab({ isEditing, isDone, title, setTitle, date, setDate, startTime, setStartTime, endTime, setEndTime, categories, selectedCats, toggleCat, onSave, onDelete, onToggleDone }) {
+function TaskTab({ isEditing, status, title, setTitle, note, setNote, date, setDate, startTime, setStartTime, endTime, setEndTime, categories, selectedCats, toggleCat, onSave, onDelete, onSetStatus }) {
   return (
     <form onSubmit={onSave}>
       {isEditing && (
         <div style={{ marginBottom: 12 }}>
-          <button type="button" onClick={onToggleDone} style={{ width: '100%', padding: '7px 10px', border: `1px solid ${isDone ? T.successBorder : T.borderStrong}`, borderRadius: 5, background: isDone ? T.successSoft : T.elevated, cursor: 'pointer', fontSize: 12, fontWeight: 600, color: isDone ? T.success : T.textSub }}>
-            {isDone ? 'Done — mark undone' : 'Mark as done'}
-          </button>
+          <Label>Status</Label>
+          <div style={{ display: 'flex', gap: 4 }}>
+            {[
+              { value: 'todo',        label: 'To Do',       color: T.textSub, bg: T.elevated,    border: T.borderStrong },
+              { value: 'in_progress', label: 'In Progress', color: T.warning, bg: T.warningSoft,  border: T.warningBorder },
+              { value: 'done',        label: 'Done',        color: T.success, bg: T.successSoft,  border: T.successBorder },
+            ].map(opt => {
+              const active = status === opt.value
+              return (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => onSetStatus(opt.value)}
+                  style={{
+                    flex: 1, padding: '7px 6px',
+                    border: `1px solid ${active ? opt.border : T.borderStrong}`,
+                    borderRadius: 5,
+                    background: active ? opt.bg : T.elevated,
+                    cursor: 'pointer', fontSize: 11, fontWeight: 600,
+                    color: active ? opt.color : T.textDim,
+                  }}
+                >
+                  {opt.label}
+                </button>
+              )
+            })}
+          </div>
         </div>
       )}
 
       <div style={{ marginBottom: 10 }}>
         <Label>Title</Label>
         <input autoFocus value={title} onChange={e => setTitle(e.target.value)} placeholder="What are you working on?" style={inputStyle} />
+      </div>
+
+      <div style={{ marginBottom: 10 }}>
+        <Label>Note</Label>
+        <textarea value={note} onChange={e => setNote(e.target.value)} placeholder="Add a note..." rows={3} style={{ ...inputStyle, resize: 'vertical', fontFamily: 'inherit' }} />
       </div>
 
       <div style={{ marginBottom: 10 }}>

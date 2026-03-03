@@ -1,5 +1,5 @@
 import supabase from '../lib/supabase'
-import logo from '../assets/productivity-logo.png'
+import logo from '../assets/navilife-icon.png'
 import { T } from '../theme'
 
 export default function Login() {
@@ -21,7 +21,7 @@ export default function Login() {
           {/* Logo */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 'auto' }}>
             <img src={logo} alt="logo" style={{ width: 36, height: 36, borderRadius: 8, objectFit: 'cover' }} />
-            <span style={{ fontWeight: 700, fontSize: 16, color: T.buttonText }}>Productivity Manager</span>
+            <span style={{ fontWeight: 700, fontSize: 16, color: T.buttonText }}>Navilife</span>
           </div>
 
           {/* Form content */}

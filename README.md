@@ -1,4 +1,4 @@
-# Productivity Manager
+# Navilife
 
 A focused, no-fluff productivity app built for people who want to plan their week, track their time, and actually see if they're improving — without spending an hour learning the tool.
 

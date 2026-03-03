@@ -15,7 +15,8 @@ create table tasks (
   date date not null,
   start_time time,
   end_time time,
-  done boolean default false,
+  status text not null default 'todo' check (status in ('todo', 'in_progress', 'done')),
+  note text default '',
   created_at timestamptz default now()
 );
 
@@ -35,10 +36,21 @@ create table time_logs (
   logged_at timestamptz default now()
 );
 
+-- Status transition logs (checkpoints)
+create table status_logs (
+  id bigint generated always as identity primary key,
+  task_id bigint references tasks(id) on delete cascade,
+  status text not null check (status in ('todo', 'in_progress', 'done')),
+  changed_at timestamptz default now()
+);
+
 -- RLS policies (RLS already enabled at DB level)
 create policy "own categories" on categories for all using (auth.uid() = user_id);
 create policy "own tasks" on tasks for all using (auth.uid() = user_id);
 create policy "own time_logs" on time_logs for all using (auth.uid() = user_id);
 create policy "own task_categories" on task_categories for all using (
+  exists (select 1 from tasks where tasks.id = task_id and tasks.user_id = auth.uid())
+);
+create policy "own status_logs" on status_logs for all using (
   exists (select 1 from tasks where tasks.id = task_id and tasks.user_id = auth.uid())
 );

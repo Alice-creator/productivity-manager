@@ -26,6 +26,8 @@ export const T = {
   successBorder:'rgba(52,211,153,0.25)',  // green border tint
   streak:       '#2EFF46',  // bright green (activity streak)
   warning:      '#F59E0B',  // amber
+  warningSoft:  'rgba(245,158,11,0.1)',   // amber background tint
+  warningBorder:'rgba(245,158,11,0.25)',  // amber border tint
   purple:       '#A78BFA',  // purple accent
   danger:       '#F87171',  // red text
   dangerBorder: '#2D1520',  // red border bg
